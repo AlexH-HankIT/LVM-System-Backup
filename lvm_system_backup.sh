@@ -455,6 +455,14 @@ function BACKUP_VG {
 					dd if=/dev/${VG_NAME[$COUNTER2]}/${lv}_snap | gzip -1 - | ssh ${USER}@$HOST dd of=$DIR_FULL/${VG_NAME[$COUNTER2]}/${lv}.img.gz
 				fi
 			}
+			
+			if [ -e /dev/${VG_NAME[$COUNTER2]}/${lv}_snap ]; then
+				log_verbose "Removing existing snapshot to prevent conflicts"
+				lvremove -f /dev/${VG_NAME[$COUNTER2]}/${lv}_snap &> /dev/null
+				if [ $? -ne 0 ]; then
+					log_error "Couldn't remove ${lv}_snap"
+				fi
+			fi
 
 			log_verbose "Creating a $SIZE snapshot named ${lv}_snap of LV ${lv} in VG $VG_NAME"
 			lvcreate --snapshot -L ${SIZE[$COUNTER2]} -n ${lv}_snap /dev/${VG_NAME[$COUNTER2]}/$lv &> /dev/null
